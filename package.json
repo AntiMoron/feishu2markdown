@@ -1,5 +1,5 @@
 {
-  "name": "test",
+  "name": "feishu2markdown",
   "version": "1.0.0",
   "description": "",
   "license": "ISC",
@@ -12,13 +12,16 @@
     "do": "npm run build && npm run start"
   },
   "dependencies": {
-    "axios": "^1.13.2"
+    "axios": "^1.13.2",
+    "path": "^0.12.7"
   },
   "devDependencies": {
     "@types/node": "^24.10.1",
     "fs": "^0.0.1-security",
-    "path": "^0.12.7",
     "prettier": "^3.6.2",
     "typescript": "^5.9.3"
-  }
+  },
+  "files": [
+    "./dist"
+  ]
 }
