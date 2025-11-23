@@ -1,0 +1,10 @@
+node_modules/
+dist/
+*.DS_Store
+*.lock
+package-lock.json
+token.json
+images/
+.vscode
+*_images/
+doc.md
