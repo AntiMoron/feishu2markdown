@@ -296,27 +296,97 @@ async function blockToMarkdown(
   return str;
 }
 
+export async function getFeishuFolderDocList(
+  folderToken: string,
+  accessToken: string,
+  pageSize: number,
+) {
+  const api = "https://open.feishu.cn/open-apis/drive/v1/files";
+  const request = await axios.get(api, {
+    headers: {
+      "Content-Type": "application/json; charset=utf-8",
+      Authorization: `Bearer ${accessToken}`,
+    },
+    params: {
+      folder_token: folderToken,
+      page_size: pageSize || 50,
+    },
+  });
+  return request.data?.data;
+}
+
 export default async function handleFeishuDoc(params: HandleDocParams) {
-  const { type: t, docUrl, appId, appSecret } = params;
+  const {
+    type: t,
+    docUrl,
+    appId,
+    appSecret,
+    handleProgress,
+    onDocFinish,
+    folderToken,
+  } = params;
   if (t !== type) {
     return;
   }
-  if (!docUrl) {
-    throw new Error("Feishu docUrl is required");
+  if (!docUrl && !folderToken) {
+    throw new Error("Feishu docUrl or folderToken is required");
+  }
+  let totalCount = 1;
+  let errorCount = 0;
+  let doneCount = 0;
+  let metdatas: any[] = [];
+  let taskUrls: string[] = [];
+  const { accessToken } = await getFeishuAccessToken(appId, appSecret);
+  if (folderToken) {
+    const { files } = await getFeishuFolderDocList(
+      folderToken || "",
+      accessToken,
+      1,
+    );
+    metdatas = files;
+    taskUrls = files.map((a: any) => a.url);
+    totalCount = files.length;
+  } else {
+    totalCount = 1;
+    taskUrls = [docUrl!];
   }
 
-  const docId = getDocumentIdFromUrl(docUrl);
-  const { accessToken } = await getFeishuAccessToken(appId, appSecret);
-  const data = await getFeishuDocContent(docId, accessToken);
-  const { items } = data;
-  const result = await blockToMarkdown(
-    docId,
-    items[0],
-    items.reduce((pre: any, obj: any) => {
-      pre[obj.block_id] = obj;
-      return pre;
-    }, {}),
-    params,
-  );
-  return result;
+  if (typeof handleProgress === "function") {
+    handleProgress(0, errorCount, totalCount);
+  }
+  for (let i = 0; i < taskUrls.length; i++) {
+    const taskUrl = taskUrls[i];
+    try {
+      const { accessToken } = await getFeishuAccessToken(appId, appSecret);
+      const docId = getDocumentIdFromUrl(taskUrl);
+      const data = await getFeishuDocContent(docId, accessToken);
+      const { items } = data;
+      const result = await blockToMarkdown(
+        docId,
+        items[0],
+        items.reduce((pre: any, obj: any) => {
+          pre[obj.block_id] = obj;
+          return pre;
+        }, {}),
+        params,
+      );
+      doneCount += 1;
+      try {
+        if (typeof handleProgress === "function") {
+          handleProgress(doneCount, errorCount, totalCount);
+        }
+      } catch {}
+      try {
+        const relief = onDocFinish?.(docId, result, metdatas[i]);
+        if (
+          relief instanceof Promise ||
+          typeof (relief as any).then === "function"
+        ) {
+          await (relief as Promise<void>);
+        }
+      } catch {}
+    } catch {
+      errorCount += 1;
+    }
+  }
 }
