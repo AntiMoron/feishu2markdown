@@ -10,5 +10,7 @@
     "resolveJsonModule": true,
     "outDir": "./dist",
     "allowSyntheticDefaultImports": true
-  }
+  },
+  "exclude": ["node_modules", "dist"],
+  "include": ["src/**/*.ts", "./index.ts"]
 }
