@@ -1,4 +1,4 @@
-import handleDoc from "feishu2markdown";
+import handleDoc from "../index";
 import * as fs from "fs";
 import * as path from "path";
 

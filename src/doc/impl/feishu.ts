@@ -1,5 +1,5 @@
 import axios from "axios";
-import { HandleDocParams } from "../type";
+import { HandleDocFolderParams, HandleDocParams } from "../type";
 import * as fs from "fs";
 import * as path from "path";
 import { Doc2MarkdownBase } from "../base";
@@ -308,6 +308,23 @@ export class FeishuDoc2Markdown extends Doc2MarkdownBase {
     return str;
   }
 
+  private async getFileList(folderToken: string, nextPageToken?: string) {
+    await this.getCachedAccessToken();
+    const params: Record<string, string | number> = {
+      folder_token: folderToken,
+      page_size: (this.params as HandleDocFolderParams).pageSize || 200,
+    };
+    if (nextPageToken) {
+      params["page_token"] = nextPageToken;
+    }
+    const api = "https://open.feishu.cn/open-apis/drive/v1/files";
+    const request = await axios.get(api, {
+      headers: this.getHeaders(),
+      params,
+    });
+    return request.data?.data;
+  }
+
   async getDocTaskList(): Promise<
     Array<{
       name: string;
@@ -329,16 +346,25 @@ export class FeishuDoc2Markdown extends Doc2MarkdownBase {
         },
       ];
     }
+
+    await this.getFileList(folderToken!);
+
     const api = "https://open.feishu.cn/open-apis/drive/v1/files";
     const request = await axios.get(api, {
       headers: this.getHeaders(),
       params: {
         folder_token: folderToken,
-        page_size: 50,
+        page_size: (this.params as HandleDocFolderParams).pageSize || 200,
       },
     });
-    const metadataList = request.data?.data;
-    return metadataList?.files?.map((item: any) => {
+    const requestData = request.data?.data;
+    let files = requestData?.files || [];
+    const { has_more: hasMore, next_page_token: nextPageToken } = requestData;
+    if (hasMore) {
+      const newData = await this.getFileList(folderToken!, nextPageToken);
+      files = files.concat(newData?.files || []);
+    }
+    return files.map((item: any) => {
       return {
         ...item,
         id: item.token,

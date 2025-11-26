@@ -1,12 +1,10 @@
 /**
  * Parameters for handling documents from different platforms.
  */
-export interface HandleDocParams {
+export interface HandleDocBaseParams {
   type: "feishu" | "none";
   appId: string;
   appSecret: string;
-  docUrl?: string;
-  folderToken?: string;
   shouldHandleUrl?: (url: string) => Promise<boolean>;
   handleImage?: (imageUrl: string) => string | Promise<string>;
   handleProgress?: (
@@ -19,4 +17,26 @@ export interface HandleDocParams {
     markdown: string,
     metadata?: any,
   ) => void | Promise<void>;
+  folderToken?: string;
+  docUrl?: string;
 }
+
+/**
+ * Parameters for handling documents from different platforms.
+ */
+export interface HandleDocFolderParams extends HandleDocBaseParams {
+  folderToken: string;
+  /**
+   * By default 200
+   */
+  pageSize?: number;
+}
+
+export interface HandleDocUrlParams extends HandleDocBaseParams {
+  docUrl: string;
+}
+
+/**
+ * Parameters for handling documents from different platforms.
+ */
+export type HandleDocParams = HandleDocFolderParams | HandleDocUrlParams;

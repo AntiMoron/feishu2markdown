@@ -9,8 +9,7 @@
   "scripts": {
     "build": "tsc",
     "start": "node ./dist/run/index.js",
-    "do": "npm run build && npm run start",
-    "deno": "deno run --allow-net run/index.ts"
+    "test": "tsc ./run/index.ts --outDir dist && node ./dist/run/index.js"
   },
   "types": "dist/index.d.ts",
   "dependencies": {
