@@ -45,6 +45,8 @@ interface BlockType {
       }>;
     };
   };
+  bullet?: BlockContentType & { style: { align: number } }; // 12
+  ordered?: BlockContentType & { style: { align: number; sequence: string } }; // 13
   image?: ImageContentType;
   text?: BlockContentType;
   heading1?: BlockContentType;
@@ -110,6 +112,8 @@ export class FeishuDoc2Markdown extends Doc2MarkdownBase {
         pre[obj.block_id] = obj;
         return pre;
       }, {}),
+      0,
+      0,
     );
     return result;
   }
@@ -174,45 +178,119 @@ export class FeishuDoc2Markdown extends Doc2MarkdownBase {
     return imagePath;
   }
 
+  private getDefaultSequenceForDepth(depth: number) {
+    switch (depth) {
+      case 0:
+      case 1:
+        return "1";
+      case 2:
+        return "a";
+      case 3:
+        return "i";
+      default:
+        return "1";
+    }
+  }
+
+  private getContentFromTextBlock(property: BlockContentType) {
+    let str = "";
+    let content = "";
+    const style = property.elements[0].text_run.text_element_style;
+    const { bold, inline_code, italic, strikethrough, underline } = style;
+    content = property.elements[0].text_run.content;
+    const composedContent = [content];
+    if (bold) {
+      composedContent.push("**");
+      composedContent.unshift("**");
+    }
+    if (inline_code) {
+      composedContent.push("`");
+      composedContent.unshift("`");
+    }
+    if (italic) {
+      composedContent.push("*");
+      composedContent.unshift("*");
+    }
+    if (strikethrough) {
+      composedContent.push("~~");
+      composedContent.unshift("~~");
+    }
+    if (underline) {
+      composedContent.push("++");
+      composedContent.unshift("++");
+    }
+    str += composedContent.join("");
+    return str;
+  }
+
+  calcOrderedSequence(depth: number, currentSequence: string, dist: number) {
+    let tryNum = Number(currentSequence);
+    if (tryNum === tryNum) {
+      // is not NaN
+      return `${tryNum + dist}`;
+    }
+
+    if (/^[a-zA-Z]+$/.test(currentSequence)) {
+      const isUpperCase = /^[A-Z]+$/.test(currentSequence);
+      const lowerSymbol = currentSequence.toLowerCase();
+      const upperSymbol = currentSequence.toUpperCase();
+      // 3. 字母字符串转十进制数值（a=1, b=2...z=26）
+      let num = 0;
+      for (let char of lowerSymbol) {
+        const charCode = char.charCodeAt(0) - "a".charCodeAt(0) + 1; // 转换为1-26的数值
+        num = num * 26 + charCode;
+      }
+
+      // 4. 加上增量
+      num += dist;
+
+      // 5. 十进制数值转回字母字符串（26进制，无0）
+      let newSymbol = "";
+      while (num > 0) {
+        let remainder = num % 26;
+        // 余数为0时，对应z（因为26%26=0，实际是z）
+        if (remainder === 0) {
+          remainder = 26;
+          num = Math.floor(num / 26) - 1; // 进位减1
+        } else {
+          num = Math.floor(num / 26);
+        }
+        // 转换为字母（小写）
+        newSymbol =
+          String.fromCharCode(remainder - 1 + "a".charCodeAt(0)) + newSymbol;
+      }
+
+      // 6. 还原大小写
+      return isUpperCase ? newSymbol.toUpperCase() : newSymbol;
+    }
+    return this.getDefaultSequenceForDepth(depth);
+  }
+
   async blockToMarkdown(
     documentId: string,
     block: BlockType,
     blockMap: Record<string, BlockType>,
+    depth: number, // start from 0
+    siblingOrder: number,
   ): Promise<string> {
     let str = "";
     let content = "";
     const { handleImage } = this.params;
-    const { block_id, block_type, children, table } = block;
+    const {
+      block_id: blockId,
+      parent_id: parentId,
+      block_type,
+      children,
+      ordered,
+      bullet,
+    } = block;
+    let { table } = block;
     switch (block_type) {
       case 1: // overall doc root
         break;
       case 2: // content
         const property = block.text as BlockContentType;
-        const style = property.elements[0].text_run.text_element_style;
-        const { bold, inline_code, italic, strikethrough, underline } = style;
-        content = property.elements[0].text_run.content;
-        const composedContent = [content];
-        if (bold) {
-          composedContent.push("**");
-          composedContent.unshift("**");
-        }
-        if (inline_code) {
-          composedContent.push("`");
-          composedContent.unshift("`");
-        }
-        if (italic) {
-          composedContent.push("*");
-          composedContent.unshift("*");
-        }
-        if (strikethrough) {
-          composedContent.push("~~");
-          composedContent.unshift("~~");
-        }
-        if (underline) {
-          composedContent.push("++");
-          composedContent.unshift("++");
-        }
-        str += composedContent.join("");
+        str += this.getContentFromTextBlock(property);
         break;
       case 3: //
         break;
@@ -250,11 +328,77 @@ export class FeishuDoc2Markdown extends Doc2MarkdownBase {
           str += `![image](${imageUrl})`;
         }
         break;
+      case 24: // columns
+        break;
       case 31: // table
       case 32: // table cell
         break;
+      case 34: // blockquote
+        str += "> ";
+        break;
+      case 19: // callout
+        break;
       default:
         break;
+    }
+    // columns -> table with 1row, N cols.
+    if (block_type === 24) {
+      table = {
+        cells: children ? [...children] : [],
+        property: {
+          column_size: children ? children.length : 0,
+          row_size: 1,
+          header_row: false,
+          merge_info: [],
+        },
+      };
+    }
+    if (block_type === 12 && bullet) {
+      // bullet
+      str += "* " + this.getContentFromTextBlock(bullet);
+    } else if (block_type === 13 && ordered) {
+      // ordered
+      const sequence = ordered.style.sequence;
+      const align = ordered.style.align;
+      let seq = `${sequence}. `;
+      if (sequence === "auto") {
+        const siblingIds = blockMap[parentId].children || [];
+        const idx = siblingIds.findIndex((item) => item === blockId);
+        if (idx < 0) {
+          seq = this.getDefaultSequenceForDepth(depth) + ". ";
+        } else {
+          // check what last item is.
+          const brotherIds = siblingIds.slice(0, idx);
+          const headingBrotherIndex =
+            brotherIds.length -
+            brotherIds.reverse().findIndex((item) => !blockMap[item]?.ordered);
+          const brother = blockMap[siblingIds[headingBrotherIndex]];
+          if (
+            brother?.ordered?.style?.sequence &&
+            brother?.ordered?.style?.sequence !== "auto"
+          ) {
+            seq =
+              this.calcOrderedSequence(
+                depth,
+                brother.ordered.style.sequence,
+                siblingOrder - headingBrotherIndex,
+              ) + ". ";
+          } else {
+            seq = this.getDefaultSequenceForDepth(depth) + ". ";
+          }
+        }
+      }
+      for (let a = 0; a < depth - 1; a++) {
+        str += "\t";
+      }
+      str += seq + this.getContentFromTextBlock(ordered);
+    }
+    if (
+      (block_type === 12 || block_type === 13) &&
+      children &&
+      children.length > 0
+    ) {
+      str += "\n";
     }
     if (table && table.property) {
       const tableProps = table.property;
@@ -280,7 +424,13 @@ export class FeishuDoc2Markdown extends Doc2MarkdownBase {
             tbStr += "| ";
           }
 
-          tbStr += await this.blockToMarkdown(documentId, cellBlock, blockMap);
+          tbStr += await this.blockToMarkdown(
+            documentId,
+            cellBlock,
+            blockMap,
+            0,
+            0,
+          );
           tbStr += i === column_size - 1 ? " |\n" : " | ";
 
           cellIndex += 1;
@@ -294,16 +444,26 @@ export class FeishuDoc2Markdown extends Doc2MarkdownBase {
       }
       str += tbStr;
     } else if (children && children.length > 0) {
-      for (const childId of children) {
+      for (let j = 0; j < children.length; j++) {
+        const childId = children[j];
         str += await this.blockToMarkdown(
           documentId,
           blockMap[childId],
           blockMap,
+          depth + 1,
+          j,
         );
-        if (block_type !== 32) {
+        if (block_type === 25) {
+          str += "<br>";
+        } else if (block_type !== 32 && block_type !== 34) {
           str += "\n";
         }
       }
+    } else if (block_type === 19) {
+      str = str
+        .split("\n")
+        .map((line) => `> ${line}`)
+        .join("\n");
     }
     return str;
   }

@@ -13,8 +13,8 @@ handleDoc({
   type: "feishu",
   appId,
   appSecret,
-  // docUrl: "https://xqs4y94tkg.feishu.cn/docx/G6bldPfBQo7nZ7xM3urcKtCPn5c",
-  folderToken: 'V3gHf81UtljFX0drD44cZwzmn4b',
+  docUrl: "https://xqs4y94tkg.feishu.cn/docx/G6bldPfBQo7nZ7xM3urcKtCPn5c",
+  // folderToken: 'V3gHf81UtljFX0drD44cZwzmn4b',
   handleProgress: (completedCount, errorCount, totalCount) => {
     console.log(
       `Progress: ${completedCount}/${totalCount}, Errors: ${errorCount}`,
@@ -23,6 +23,6 @@ handleDoc({
   onDocFinish: (docId, markdown, metdata) => {
     const mdDir = path.resolve(process.cwd(), `./${docId}.md`);
     fs.writeFileSync(mdDir, markdown!);
-    console.log(`Document saved: ${mdDir}`, metdata);
+    console.log(`Document saved: ${mdDir}`);
   },
 });
