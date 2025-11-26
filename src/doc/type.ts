@@ -30,6 +30,11 @@ export interface HandleDocFolderParams extends HandleDocBaseParams {
    * By default 200
    */
   pageSize?: number;
+
+  /**
+   * Times of iteration
+   */
+  pageCount?: number;
 }
 
 export interface HandleDocUrlParams extends HandleDocBaseParams {

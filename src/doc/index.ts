@@ -29,7 +29,7 @@ export default async function handleDoc(params: HandleDocParams) {
   let totalCount = tasks.length;
   let errorCount = 0;
   let doneCount = 0;
-  let metdatas: any[] = [];
+  const metdatas: any[] = tasks;
   if (typeof handleProgress === "function") {
     handleProgress(0, errorCount, totalCount);
   }

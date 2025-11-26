@@ -347,22 +347,18 @@ export class FeishuDoc2Markdown extends Doc2MarkdownBase {
       ];
     }
 
-    await this.getFileList(folderToken!);
-
-    const api = "https://open.feishu.cn/open-apis/drive/v1/files";
-    const request = await axios.get(api, {
-      headers: this.getHeaders(),
-      params: {
-        folder_token: folderToken,
-        page_size: (this.params as HandleDocFolderParams).pageSize || 200,
-      },
-    });
-    const requestData = request.data?.data;
-    let files = requestData?.files || [];
-    const { has_more: hasMore, next_page_token: nextPageToken } = requestData;
-    if (hasMore) {
-      const newData = await this.getFileList(folderToken!, nextPageToken);
-      files = files.concat(newData?.files || []);
+    let files: any[] = [];
+    let nextPageToken: string | undefined = undefined;
+    const maxIterations = (this.params as HandleDocFolderParams).pageCount || 3;
+    for (let i = 0; i < maxIterations; i++) {
+      const requestData = await this.getFileList(folderToken!, nextPageToken);
+      files = files.concat(requestData?.files || []);
+      const { has_more: hasMore, next_page_token: newNextPageToken } =
+        requestData;
+      nextPageToken = newNextPageToken;
+      if (!hasMore) {
+        break;
+      }
     }
     return files.map((item: any) => {
       return {
