@@ -8,3 +8,4 @@ images/
 .vscode
 *_images/
 doc.md
+*.md

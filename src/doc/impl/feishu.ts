@@ -101,7 +101,6 @@ export class FeishuDoc2Markdown extends Doc2MarkdownBase {
     task: T,
   ): Promise<string> {
     const { id: docId, url: docUrl, ...metadata } = task;
-    await this.getCachedAccessToken();
     const data = await this.getRawDocContent(docId);
     const { items } = data;
     const result = await this.blockToMarkdown(
@@ -123,13 +122,21 @@ export class FeishuDoc2Markdown extends Doc2MarkdownBase {
     throw new Error("Invalid Feishu document URL");
   }
 
-  async getDocMetadata(documentId: string): Promise<any> {
+  async getDocMetadata(
+    documentId: string,
+  ): Promise<{ id: string; token: string; name: string }> {
     const api = `https://open.feishu.cn/open-apis/docx/v1/documents/${documentId}`;
     const data = await axios.get(api, {
       headers: this.getHeaders(),
     });
-    const metadata = data.data?.document;
-    return { ...metadata, id: metadata.document_id, url: metadata.url };
+    const metadata = data.data?.data?.document;
+    return {
+      ...metadata,
+      id: metadata.document_id,
+      token: metadata.document_id,
+      url: metadata.url,
+      name: metadata.title,
+    };
   }
 
   async getRawDocContent(documentId: string): Promise<any> {
@@ -151,7 +158,6 @@ export class FeishuDoc2Markdown extends Doc2MarkdownBase {
     if (fs.existsSync(imagePath)) {
       return imagePath;
     }
-
     const apiUrl = `https://open.feishu.cn/open-apis/drive/v1/medias/${resourceToken}/download`;
     const request = axios({
       url: apiUrl,
@@ -231,6 +237,7 @@ export class FeishuDoc2Markdown extends Doc2MarkdownBase {
         if (image) {
           const { token, scale, width, height } = image;
           let imageUrl = token;
+          await this.getCachedAccessToken();
           imageUrl = await this.handleFeishuImage(documentId, token);
           if (typeof handleImage === "function") {
             const d = handleImage(imageUrl);
@@ -301,14 +308,24 @@ export class FeishuDoc2Markdown extends Doc2MarkdownBase {
     return str;
   }
 
-  async getDocTaskList(): Promise<any[]> {
+  async getDocTaskList(): Promise<
+    Array<{
+      name: string;
+      url: string;
+      type: string;
+      token: string;
+      id: string;
+    }>
+  > {
     const { folderToken, docUrl } = this.params;
     if (docUrl) {
       const docId = this.getDocumentIdFromUrl(docUrl);
+      const singleData = await this.getDocMetadata(docId);
       return [
         {
-          ...(await this.getDocMetadata(docId)),
+          ...singleData,
           url: docUrl,
+          type: "docx",
         },
       ];
     }
@@ -328,25 +345,6 @@ export class FeishuDoc2Markdown extends Doc2MarkdownBase {
       };
     });
   }
-}
-
-export async function getFeishuFolderDocList(
-  folderToken: string,
-  accessToken: string,
-  pageSize: number,
-) {
-  const api = "https://open.feishu.cn/open-apis/drive/v1/files";
-  const request = await axios.get(api, {
-    headers: {
-      "Content-Type": "application/json; charset=utf-8",
-      Authorization: `Bearer ${accessToken}`,
-    },
-    params: {
-      folder_token: folderToken,
-      page_size: pageSize || 50,
-    },
-  });
-  return request.data?.data;
 }
 
 export default FeishuDoc2Markdown;

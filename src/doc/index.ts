@@ -24,13 +24,12 @@ export default async function handleDoc(params: HandleDocParams) {
     throw new Error(`Unsupported document type: ${t}`);
   }
   const handler = new HandlerClass(params);
-  let totalCount = 1;
+  await handler.getCachedAccessToken();
+  const tasks = await handler.getDocTaskList();
+  let totalCount = tasks.length;
   let errorCount = 0;
   let doneCount = 0;
   let metdatas: any[] = [];
-  await handler.getCachedAccessToken();
-  const tasks = await handler.getDocTaskList();
-  totalCount = tasks.length;
   if (typeof handleProgress === "function") {
     handleProgress(0, errorCount, totalCount);
   }
@@ -45,6 +44,7 @@ export default async function handleDoc(params: HandleDocParams) {
       continue;
     }
     try {
+      await handler.getCachedAccessToken();
       const result = await handler.handleDocTask(task);
       doneCount += 1;
       try {
