@@ -12,6 +12,7 @@
     "do": "npm run build && npm run start",
     "deno": "deno run --allow-net run/index.ts"
   },
+  "types": "dist/index.d.ts",
   "dependencies": {
     "axios": "^1.13.2",
     "path": "^0.12.7"
