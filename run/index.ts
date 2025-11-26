@@ -2,7 +2,9 @@ import handleDoc from "../index";
 import * as fs from "fs";
 import * as path from "path";
 
-const Token = JSON.parse(fs.readFileSync(path.join(__dirname, "./token.json"), "utf-8"));
+const Token = JSON.parse(
+  fs.readFileSync(path.join(__dirname, "./token.json"), "utf-8"),
+);
 
 const { appId, appSecret } = Token;
 
@@ -19,6 +21,9 @@ handleDoc({
     console.log(
       `Progress: ${completedCount}/${totalCount}, Errors: ${errorCount}`,
     );
+  },
+  handleImage: (localImgDir) => {
+    return localImgDir;
   },
   onDocFinish: (docId, markdown, metdata) => {
     const mdDir = path.resolve(process.cwd(), `./${docId}.md`);

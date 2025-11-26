@@ -6,7 +6,6 @@
 
 飞书转markdown还挺麻烦的
 
-
 ## 功能：
 
 1. 根据飞书的appId, appSecrete还有文件夹token批量自动处理一组文档；也支持只处理一个文档
@@ -14,7 +13,6 @@
 3. 提供接口让你方便处理整出来的图片怎么接着二次加工（如上传自己的CDN等）
 4. 复杂的排版不支持，文档最好是从上到下线性的
 5. AI编程友好，不会让他读到你得appId, appSecret
-
 
 ### 小巧思
 
@@ -55,6 +53,9 @@ handleDoc({
     console.log(
       `Progress: ${completedCount}/${totalCount}, Errors: ${errorCount}`,
     );
+  },
+  handleImage: (url: string) { // local file dir
+    return url;
   },
   onDocFinish: (docId, markdown, metdata) => {
     const mdDir = path.resolve(process.cwd(), `./${docId}.md`);
