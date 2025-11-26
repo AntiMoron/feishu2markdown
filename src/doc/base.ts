@@ -1,4 +1,4 @@
-import { HandleDocParams } from "./type.d";
+import { HandleDocParams } from "./type";
 
 export abstract class Doc2MarkdownBase {
   static type: HandleDocParams["type"] = "none";

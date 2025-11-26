@@ -1,6 +1,6 @@
 {
   "name": "feishu2markdown",
-  "version": "1.0.2",
+  "version": "1.0.3",
   "description": "",
   "license": "ISC",
   "author": "",
@@ -16,6 +16,12 @@
   "dependencies": {
     "axios": "^1.13.2",
     "path": "^0.12.7"
+  },
+  "peerDependencies": {
+    "@types/node": "^24.10.1",
+    "fs": "^0.0.1-security",
+    "prettier": "^3.6.2",
+    "typescript": "^5.9.3"
   },
   "devDependencies": {
     "@types/node": "^24.10.1",
