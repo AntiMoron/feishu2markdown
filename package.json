@@ -9,7 +9,7 @@
   "scripts": {
     "build": "tsc",
     "start": "node ./dist/run/index.js",
-    "test": "tsc ./run/index.ts --outDir dist && node ./dist/run/index.js"
+    "test": "tsc ./run/index.ts --outDir dist && cp ./run/token.json ./dist/run/token.json && node ./dist/run/index.js"
   },
   "types": "dist/index.d.ts",
   "dependencies": {

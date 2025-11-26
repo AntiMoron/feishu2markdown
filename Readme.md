@@ -28,7 +28,7 @@
 3. 如下调用进行测试
    1. 照着 run/example_token.json下的样子，复制一个token.json出来
    2. 把你创建的飞书应用的appId和appSecret都放进去
-   3. 执行 `yarn do` 直接做一个测试；
+   3. 执行 `npm run test` 直接做一个测试；
       1. 成功的话会出现doc.md以及一个如`**_images`的文件夹，里面都是图片
 
 ```typescript
