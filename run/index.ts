@@ -1,8 +1,8 @@
 import handleDoc from "../src/doc";
-import Token from "./token.json";
-import axios from "axios";
 import * as fs from "fs";
 import * as path from "path";
+
+const Token = JSON.parse(fs.readFileSync(path.join(__dirname, "./token.json"), "utf-8"));
 
 const { appId, appSecret } = Token;
 
@@ -13,7 +13,7 @@ handleDoc({
   type: "feishu",
   appId,
   appSecret,
-  docUrl: 'https://xqs4y94tkg.feishu.cn/docx/G6bldPfBQo7nZ7xM3urcKtCPn5c',
+  docUrl: "https://xqs4y94tkg.feishu.cn/docx/G6bldPfBQo7nZ7xM3urcKtCPn5c",
   // folderToken: 'V3gHf81UtljFX0drD44cZwzmn4b',
   handleProgress: (completedCount, errorCount, totalCount) => {
     console.log(
