@@ -19,6 +19,7 @@ export interface HandleDocBaseParams {
   ) => void | Promise<void>;
   folderToken?: string;
   docUrl?: string;
+  docToken?: string;
 }
 
 /**
@@ -41,7 +42,11 @@ export interface HandleDocUrlParams extends HandleDocBaseParams {
   docUrl: string;
 }
 
+export interface HandleDocTokenParams extends HandleDocBaseParams {
+  docToken: string;
+}
+
 /**
  * Parameters for handling documents from different platforms.
  */
-export type HandleDocParams = HandleDocFolderParams | HandleDocUrlParams;
+export type HandleDocParams = HandleDocFolderParams | HandleDocUrlParams | HandleDocTokenParams;

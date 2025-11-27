@@ -15,7 +15,9 @@ getDocTaskList({
   type: "feishu",
   appId,
   appSecret,
-  docUrl: "https://xqs4y94tkg.feishu.cn/docx/G6bldPfBQo7nZ7xM3urcKtCPn5c",
+  // docUrl: "https://xqs4y94tkg.feishu.cn/docx/G6bldPfBQo7nZ7xM3urcKtCPn5c",
+  // folderToken: 'V3gHf81UtljFX0drD44cZwzmn4b',
+  docToken: "G6bldPfBQo7nZ7xM3urcKtCPn5c",
 }).then((a) => console.log(a));
 
 handleDoc({

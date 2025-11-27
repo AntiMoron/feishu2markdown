@@ -8,9 +8,9 @@ function getHandlerClass(type: string) {
 }
 
 function checkParams(params: HandleDocParams) {
-  const { type: t, docUrl, folderToken } = params;
-  if (!docUrl && !folderToken) {
-    throw new Error("Feishu docUrl or folderToken is required");
+  const { type: t, docUrl, docToken, folderToken } = params;
+  if (!docUrl && !folderToken && !docToken) {
+    throw new Error("Feishu docUrl, docToken or folderToken is required");
   }
   const HandlerClass = getHandlerClass(t);
   if (!HandlerClass) {
@@ -26,7 +26,6 @@ function checkParams(params: HandleDocParams) {
 export async function getDocTaskList(params: HandleDocParams) {
   checkParams(params);
   const { type: t } = params;
-  checkParams(params);
   const HandlerClass = getHandlerClass(t);
   const handler = new HandlerClass!(params);
   await handler.getCachedAccessToken();
@@ -36,11 +35,11 @@ export async function getDocTaskList(params: HandleDocParams) {
 
 /**
  * Convert documents to markdown and assets
- * @param params 
+ * @param params
  */
 export default async function handleDoc(params: HandleDocParams) {
-  const { type: t, handleProgress, onDocFinish, shouldHandleUrl } = params;
   checkParams(params);
+  const { type: t, handleProgress, onDocFinish, shouldHandleUrl } = params;
   const HandlerClass = getHandlerClass(t);
   const handler = new HandlerClass!(params);
   await handler.getCachedAccessToken();

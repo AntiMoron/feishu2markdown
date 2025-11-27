@@ -517,13 +517,16 @@ export class FeishuDoc2Markdown extends Doc2MarkdownBase {
     }>
   > {
     const { folderToken, docUrl } = this.params;
-    if (docUrl) {
-      const docId = this.getDocumentIdFromUrl(docUrl);
-      const singleData = await this.getDocMetadata(docId);
+    let { docToken } = this.params;
+    if (!docToken && docUrl) {
+      docToken = this.getDocumentIdFromUrl(docUrl);
+    }
+    if (docToken) {
+      const singleData = await this.getDocMetadata(docToken);
       return [
         {
           ...singleData,
-          url: docUrl,
+          url: docUrl ?? "",
           type: "docx",
         },
       ];
