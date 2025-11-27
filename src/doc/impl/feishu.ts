@@ -355,6 +355,9 @@ export class FeishuDoc2Markdown extends Doc2MarkdownBase {
     }
     if (block_type === 12 && bullet) {
       // bullet
+      for (let a = 0; a < depth - 1; a++) {
+        str += "\t";
+      }
       str += "* " + this.getContentFromTextBlock(bullet);
     } else if (block_type === 13 && ordered) {
       // ordered
@@ -369,9 +372,21 @@ export class FeishuDoc2Markdown extends Doc2MarkdownBase {
         } else {
           // check what last item is.
           const brotherIds = siblingIds.slice(0, idx);
+          let dist = 1;
           const headingBrotherIndex =
             brotherIds.length -
-            brotherIds.reverse().findIndex((item) => !blockMap[item]?.ordered);
+            brotherIds.reverse().findIndex((item) => {
+              const block = blockMap[item];
+              if (block && block.ordered && block.ordered.style) {
+                if (block.ordered.style.sequence === "auto") {
+                  dist += 1;
+                } else {
+                  return true;
+                }
+              }
+              return false;
+            }) -
+            1;
           const brother = blockMap[siblingIds[headingBrotherIndex]];
           if (
             brother?.ordered?.style?.sequence &&
@@ -381,7 +396,7 @@ export class FeishuDoc2Markdown extends Doc2MarkdownBase {
               this.calcOrderedSequence(
                 depth,
                 brother.ordered.style.sequence,
-                siblingOrder - headingBrotherIndex,
+                dist,
               ) + ". ";
           } else {
             seq = this.getDefaultSequenceForDepth(depth) + ". ";
@@ -400,6 +415,7 @@ export class FeishuDoc2Markdown extends Doc2MarkdownBase {
     ) {
       str += "\n";
     }
+    // --- split --- //
     if (table && table.property) {
       const tableProps = table.property;
       const { cells } = table;
@@ -455,11 +471,17 @@ export class FeishuDoc2Markdown extends Doc2MarkdownBase {
         );
         if (block_type === 25) {
           str += "<br>";
-        } else if (block_type !== 32 && block_type !== 34) {
+        } else if (
+          block_type !== 32 &&
+          block_type !== 34 &&
+          j !== children.length - 1
+        ) {
           str += "\n";
         }
       }
-    } else if (block_type === 19) {
+    }
+    // ------dont remove--------split-------//
+    if (block_type === 19) {
       str = str
         .split("\n")
         .map((line) => `> ${line}`)

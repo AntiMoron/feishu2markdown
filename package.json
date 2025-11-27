@@ -1,6 +1,6 @@
 {
   "name": "feishu2markdown",
-  "version": "1.1.4",
+  "version": "1.1.5",
   "description": "feishu document to markdown converter",
   "license": "MIT",
   "author": "",
@@ -9,7 +9,7 @@
   "scripts": {
     "build": "tsc",
     "start": "node ./dist/run/index.js",
-    "test": "mkdir -p dist/run && tsc run/index.ts --outDir dist/run && cp ./run/token.json ./dist/run/token.json && node ./dist/run/index.js",
+    "test": "mkdir -p dist/run && tsc ./run/index.ts --outDir dist/ && cp ./run/token.json ./dist/run/token.json && node ./dist/run/index.js",
     "clean": "rm -rf ./dist"
   },
   "types": "dist/index.d.ts",

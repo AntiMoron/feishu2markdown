@@ -1,4 +1,4 @@
-import handleDoc, { getDocTaskList } from "feishu2markdown";
+import handleDoc, { getDocTaskList } from "../index";
 import * as fs from "fs";
 import * as path from "path";
 
