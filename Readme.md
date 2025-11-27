@@ -50,7 +50,7 @@ yarn add feishu2markdown
       1. 成功的话会出现doc.md以及一个如`**_images`的文件夹，里面都是图片
 
 ```typescript
-import handleDoc from "../src/doc";
+import handleDoc from "feishu2markdown";
 import Token from "./token.json";
 import axios from "axios";
 import * as fs from "fs";
@@ -81,4 +81,18 @@ handleDoc({
     console.log(`Document saved: ${mdDir}`, metdata);
   },
 });
+```
+
+获取文档列表
+
+```typescript
+import handleDoc, { getDocTaskList } from "feishu2markdwon";
+
+
+getDocTaskList({
+  type: "feishu",
+  appId,
+  appSecret,
+  docUrl: "https://xqs4y94tkg.feishu.cn/docx/G6bldPfBQo7nZ7xM3urcKtCPn5c",
+}).then((a) => console.log(a));
 ```

@@ -1,4 +1,4 @@
-import handleDoc from "../index";
+import handleDoc, { getDocTaskList } from "../index";
 import * as fs from "fs";
 import * as path from "path";
 
@@ -10,6 +10,13 @@ const { appId, appSecret } = Token;
 
 console.log("App ID:", appId);
 console.log("App Secret:", appSecret);
+
+getDocTaskList({
+  type: "feishu",
+  appId,
+  appSecret,
+  docUrl: "https://xqs4y94tkg.feishu.cn/docx/G6bldPfBQo7nZ7xM3urcKtCPn5c",
+}).then((a) => console.log(a));
 
 handleDoc({
   type: "feishu",
