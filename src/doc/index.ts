@@ -1,10 +1,32 @@
+import { LRU as LRUCache } from "tiny-lru";
 import Feishu2Markdown from "./impl/feishu";
 import { HandleDocParams } from "./type";
+import sha256 from "sha256";
+import { Doc2MarkdownBase } from "./base";
 
-const HandlerClasses = [Feishu2Markdown];
+const handlerCache = new LRUCache(50);
 
-function getHandlerClass(type: string) {
+const HandlerClasses: (typeof Doc2MarkdownBase)[] = [Feishu2Markdown];
+
+function getHandlerClass(type: string): typeof Doc2MarkdownBase | undefined {
   return HandlerClasses.find((clx) => clx.type === type);
+}
+
+function getHandler<T extends Doc2MarkdownBase>(params: HandleDocParams): T {
+  const { type: t } = params;
+  const hash = sha256(JSON.stringify(params));
+
+  let handler = handlerCache.get(hash);
+  if (handler) {
+    return handler as T;
+  }
+  const HandlerClass = getHandlerClass(t) as any;
+  if (!HandlerClass) {
+    throw new Error(`Unsupported document type: ${t}`);
+  }
+  const newHandler = new HandlerClass(params) as T;
+  handlerCache.set(hash, newHandler);
+  return newHandler;
 }
 
 function checkParams(params: HandleDocParams) {
@@ -26,8 +48,7 @@ function checkParams(params: HandleDocParams) {
 export async function getDocTaskList(params: HandleDocParams) {
   checkParams(params);
   const { type: t } = params;
-  const HandlerClass = getHandlerClass(t);
-  const handler = new HandlerClass!(params);
+  const handler = getHandler(params);
   await handler.getCachedAccessToken();
   const tasks = await handler.getDocTaskList();
   return tasks;
@@ -39,9 +60,8 @@ export async function getDocTaskList(params: HandleDocParams) {
  */
 export default async function handleDoc(params: HandleDocParams) {
   checkParams(params);
-  const { type: t, handleProgress, onDocFinish, shouldHandleUrl } = params;
-  const HandlerClass = getHandlerClass(t);
-  const handler = new HandlerClass!(params);
+  const { handleProgress, onDocFinish, shouldHandleUrl } = params;
+  const handler = getHandler(params);
   await handler.getCachedAccessToken();
   const tasks = await handler.getDocTaskList();
   let totalCount = tasks.length;
