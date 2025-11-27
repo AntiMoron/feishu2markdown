@@ -7,15 +7,8 @@ function getHandlerClass(type: string) {
   return HandlerClasses.find((clx) => clx.type === type);
 }
 
-export default async function handleDoc(params: HandleDocParams) {
-  const {
-    type: t,
-    docUrl,
-    handleProgress,
-    onDocFinish,
-    folderToken,
-    shouldHandleUrl,
-  } = params;
+function checkParams(params: HandleDocParams) {
+  const { type: t, docUrl, folderToken } = params;
   if (!docUrl && !folderToken) {
     throw new Error("Feishu docUrl or folderToken is required");
   }
@@ -23,7 +16,33 @@ export default async function handleDoc(params: HandleDocParams) {
   if (!HandlerClass) {
     throw new Error(`Unsupported document type: ${t}`);
   }
-  const handler = new HandlerClass(params);
+}
+
+/**
+ * Get tasks from folder, if only url provided, a single task in an array will be returned
+ * @param params
+ * @returns
+ */
+export async function getDocTaskList(params: HandleDocParams) {
+  checkParams(params);
+  const { type: t } = params;
+  checkParams(params);
+  const HandlerClass = getHandlerClass(t);
+  const handler = new HandlerClass!(params);
+  await handler.getCachedAccessToken();
+  const tasks = await handler.getDocTaskList();
+  return tasks;
+}
+
+/**
+ * Convert documents to markdown and assets
+ * @param params 
+ */
+export default async function handleDoc(params: HandleDocParams) {
+  const { type: t, handleProgress, onDocFinish, shouldHandleUrl } = params;
+  checkParams(params);
+  const HandlerClass = getHandlerClass(t);
+  const handler = new HandlerClass!(params);
   await handler.getCachedAccessToken();
   const tasks = await handler.getDocTaskList();
   let totalCount = tasks.length;
