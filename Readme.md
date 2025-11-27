@@ -1,12 +1,16 @@
 # 飞书文档转Markdown
 
+Keywords: 
+
+飞书文档; 飞书转Markdown; 飞书转MD; nodejs; feishu to markdown; feishu doc to markdown
+
 ---
 
-## 动机
+## 动机(Motivation)
 
 飞书转markdown还挺麻烦的
 
-## 功能：
+## 功能(Features)
 
 1. 根据飞书的appId, appSecrete还有文件夹token批量自动处理一组文档；也支持只处理一个文档
 2. 支持处理图片
@@ -14,11 +18,25 @@
 4. 复杂的排版不支持，文档最好是从上到下线性的
 5. AI编程友好，不会让他读到你得appId, appSecret
 
-### 小巧思
+### 小巧思(Usages)
 
 1. 你可以用通过这个库把飞书的文件夹文档作为RAG的知识库
 
-### 使用方法
+### 安装方法(Installation)
+
+NPM: 
+
+```bash
+npm i --save feishu2markdown
+```
+
+Yarn:
+
+```bash
+yarn add feishu2markdown
+```
+
+### 使用方法(How to use)
 
 1. 去飞书开发者后台申请飞书内部应用 https://open.feishu.cn/
 2. 申请后，为应用申请以下权限：
