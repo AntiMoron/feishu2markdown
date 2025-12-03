@@ -37,7 +37,15 @@ export abstract class Doc2MarkdownBase {
     };
   }
 
-  abstract getDocTaskList(): Promise<any[]>;
+  abstract getDocTaskList(): Promise<
+    Array<{
+      name: string;
+      url: string;
+      type: string;
+      token: string;
+      id: string;
+    }>
+  >;
 
   abstract handleDocTask<T extends { id: string; url: string }>(
     task: T,
