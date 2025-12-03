@@ -100,7 +100,8 @@ getDocTaskList({
 ---
 ### Roadmap
 
-不是，我发现百来人过来 clone，倒是直接过来贡献代码啊；未来我会加一个 contributor 榜单的
+不是，我发现百来人过来 clone，倒是直接过来贡献代码啊；未来我会加一个 contributor 榜单的;
+有事你也留 isuue，就当聊天了，热闹下？
 
 |平台|完成情况|
 |---|---|
