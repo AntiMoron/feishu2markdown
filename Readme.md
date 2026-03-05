@@ -1,5 +1,8 @@
 # doc2markdown
 
+Project renamed to: https://github.com/AntiMoron/doc2markdown 
+This one archived.
+
 **Convert Feishu (飞书) and Google Docs documents to Markdown — automatically.**
 
 > Feishu to Markdown · Google Docs to Markdown · 飞书转Markdown · 飞书文档转MD
